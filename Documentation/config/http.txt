@@ -68,6 +68,16 @@ http.saveCookies::
 	If set, store cookies received during requests to the file specified by
 	http.cookieFile. Has no effect if http.cookieFile is unset.
 
+http.version::
+	If set, use the specific http(s) protocol version.
+	Actually this versions are possible:
+
+	- 2.0 -> HTTP/2
+	- 2   -> HTTP/2
+	- 1.1 -> HTTP/1.1
+	- 1.0 -> HTTP/1.0
+	- '1' -> HTTP/1.0
+
 http.sslVersion::
 	The SSL version to use when negotiating an SSL connection, if you
 	want to force the default.  The available and default version

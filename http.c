@@ -83,6 +83,7 @@ static const char *ssl_cainfo;
 static long curl_low_speed_limit = -1;
 static long curl_low_speed_time = -1;
 static int curl_ftp_no_epsv;
+static const char *curl_http_version;
 static const char *curl_http_proxy;
 static const char *http_proxy_authmethod;
 static struct {
@@ -355,6 +356,11 @@ static int http_options(const char *var, const char *value, void *cb)
 		curl_ftp_no_epsv = git_config_bool(var, value);
 		return 0;
 	}
+	if (!strcmp("http.version", var)) {
+		warning(_("Found special http versiopn to use"));
+		return git_config_string(&curl_http_version, var, value);
+	}
+
 	if (!strcmp("http.proxy", var))
 		return git_config_string(&curl_http_proxy, var, value);
 
@@ -926,6 +932,19 @@ static CURL *get_curl_handle(void)
 	if (curl_ftp_no_epsv)
 		curl_easy_setopt(result, CURLOPT_FTP_USE_EPSV, 0);
 
+	if (curl_http_version) {
+		if (!strcmp(curl_http_version, "2") || !strcmp(curl_http_version, "2.0"))
+			curl_easy_setopt(result, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2_0);
+		else if (!strcmp(curl_http_version, "2TLS"))
+			curl_easy_setopt(result, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
+		else if (!strcmp(curl_http_version, "1.1"))
+			curl_easy_setopt(result, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+		else if (!strcmp(curl_http_version, "1.0") || strcmp(curl_http_version, "1"))
+			curl_easy_setopt(result, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
+		else
+			warning(_("Use default http(s) protocol"));
+	}
+
 #ifdef CURLOPT_USE_SSL
 	if (curl_ssl_try)
 		curl_easy_setopt(result, CURLOPT_USE_SSL, CURLUSESSL_TRY);
@@ -1168,6 +1187,11 @@ void http_cleanup(void)
 
 	curl_slist_free_all(no_pragma_header);
 	no_pragma_header = NULL;
+
+	if (curl_http_version) {
+		free((void *)curl_http_version);
+		curl_http_version = NULL;
+	}
 
 	if (curl_http_proxy) {
 		free((void *)curl_http_proxy);
