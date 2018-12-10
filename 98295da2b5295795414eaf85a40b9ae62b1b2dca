@@ -1,0 +1,5 @@
+I hit a problem with a libcurl (Namely [this bug]). This bug looks
+like never get fixed and to just-use-git from my commandline I don't want
+compile a own libcurl with disabled gssapi or/and http/2.
+
+[this bug]: https://github.com/curl/curl/issues/876
